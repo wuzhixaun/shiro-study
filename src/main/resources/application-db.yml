@@ -1,0 +1,7 @@
+# DataSource Config
+spring:
+  datasource:
+    username: root
+    password: 123456
+    url: jdbc:mysql://wuzx.cool:30006/db_shiro?allowMultiQueries=true&useUnicode=true&characterEncoding=UTF-8&useSSL=false
+    driver-class-name: com.mysql.jdbc.Driver
