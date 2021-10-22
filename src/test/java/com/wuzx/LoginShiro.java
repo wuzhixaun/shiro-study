@@ -12,15 +12,20 @@ import org.apache.shiro.authc.UnknownAccountException;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.apache.shiro.authc.pam.FirstSuccessfulStrategy;
 import org.apache.shiro.authc.pam.ModularRealmAuthenticator;
+import org.apache.shiro.authz.UnauthorizedException;
+import org.apache.shiro.config.IniSecurityManagerFactory;
 import org.apache.shiro.mgt.DefaultSecurityManager;
+import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.realm.Realm;
 import org.apache.shiro.realm.text.IniRealm;
 import org.apache.shiro.session.Session;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.subject.Subject;
+import org.apache.shiro.util.Factory;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 
@@ -197,5 +202,67 @@ public class LoginShiro {
         if (authenticated) {
             System.out.println("登陆成功");
         }
+    }
+    private void login(String configFile,String userName ,String password) {
+        //1、获取SecurityManager工厂，此处使用Ini配置文件初始化SecurityManager
+
+        Factory<org.apache.shiro.mgt.SecurityManager> factory =new IniSecurityManagerFactory(configFile);
+        //2、得到 SecurityManager实例 并绑定给SecurityUtils
+
+        org.apache.shiro.mgt.SecurityManager securityManager = factory.getInstance();
+        SecurityUtils.setSecurityManager(securityManager);
+        //3、得到Subject 及创建用户名/密码身份验证 Token（即用户身份/凭证）
+        Subject subject = SecurityUtils.getSubject();
+        UsernamePasswordToken token = new UsernamePasswordToken(userName, password);
+        subject.login(token);
+    }
+
+
+    @Test
+    public void testHasRole() {
+        login("classpath:shiro-quick-start.ini", "system", "system");
+
+        //判断拥有角色：user
+        System.out.println(SecurityUtils.getSubject().hasRole("user"));
+        System.out.println(SecurityUtils.getSubject().hasRole("admin"));
+
+        //判断拥有角色：role1 and role2
+        System.out.println(SecurityUtils.getSubject().hasAllRoles(Arrays.asList("user", "admin")));
+
+    }
+
+    private static Subject subject() {
+        return SecurityUtils.getSubject();
+    }
+
+
+    /**
+     * Shiro 提供了 isPermitted 和 isPermittedAll 用于判断用户是否拥有某个权限或所有权限
+     */
+    @Test
+    public void testIsPermitted() {
+        login("classpath:shiro-quick-start.ini", "zhangsan", "zhangsan");
+
+
+        //判断拥有权限：user:create
+        System.out.println(subject().isPermitted("user:create"));
+
+        //判断拥有权限：user:update and user:delete
+        System.out.println(subject().isPermittedAll("user:update", "user:delete"));
+
+
+        //判断没有权限：user:view
+        System.out.println(subject().isPermitted("user:view"));
+    }
+
+    @Test
+    public void testCheckPermission () {
+        login("classpath:shiro-quick-start.ini", "zhangsan", "zhangsan");
+        //断言拥有权限：user:create
+        subject().checkPermission("user:create");
+        //断言拥有权限：user:delete and user:update
+        subject().checkPermissions("user:delete", "user:update");
+        //断言拥有权限：user:view 失败抛出异常
+        subject().checkPermissions("user:view");
     }
 }

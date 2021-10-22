@@ -4,7 +4,7 @@ server:
         uri-encoding: UTF-8
         max-threads: 1000
         min-spare-threads: 30
-    port: 8081
+    port: 8888
 spring:
     mvc:
       static-path-pattern: /static/**
@@ -21,13 +21,13 @@ spring:
       expireSeconds: 60
       timeout: 5000ms  #redis操作的超时时间
       database: 0
-      host: 192.168.254.201
+      host: localhost
       port: 6379
 #mybatis 插件
 mybatis-plus:
   mapper-locations: classpath:mapper/**/*.xml
   #实体扫描，多个package用逗号或者分号分隔
-  typeAliasesPackage: com.bjmashibing.shiro.moduler.*.entity
+  typeAliasesPackage: com.wuzx.shiro.system.entity
   global-config:
     db-config:
       #主键类型  0:"数据库ID自增", 1:"用户输入ID",2:"全局唯一ID (数字类型唯一ID)", 3:"全局唯一ID UUID";
